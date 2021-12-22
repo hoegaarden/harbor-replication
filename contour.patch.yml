@@ -10,8 +10,14 @@ spec:
   #@overlay/match by="name"
   - name: http
     #@overlay/match missing_ok=True
-    nodePort: 30950 #! needs to match the portforwarding in kind.yaml
+    nodePort: #@ data.values.nodePort.http
   #@overlay/match by="name"
   - name: https
     #@overlay/match missing_ok=True
-    nodePort: 30951 #! needs to match the portforwarding in kind.yaml
+    nodePort: #@ data.values.nodePort.https
+  #@overlay/match missing_ok=True
+  clusterIP: #@ data.values.clusterIP
+  #@overlay/match missing_ok=True
+  #@overlay/replace
+  clusterIPs:
+  - #@ data.values.clusterIP
