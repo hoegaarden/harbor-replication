@@ -50,8 +50,6 @@ ssl: cert/harbor.pem
 ssl.delete:
 	rm -rf cert/
 
-harbor.deploy: CORE=core.$(NS).harbor.domain
-harbor.deploy: NOTARY=notary.$(NS).harbor.domain
 harbor.deploy: ssl
 	ytt -f ns.yml -v ns=$(NS) \
 		| kubectl apply -f -
@@ -62,8 +60,33 @@ harbor.deploy: ssl
 			| sed -e 's/___remove___-//g' -e 's/___remove___/harbor-$(NS)/g' \
 			| kubectl --namespace $(NS) apply -f -
 
+	mkdir -p tmp
+	API_CA_FILE=cert/harbor.pem API_BASE='https://$(CORE)' API_USER='admin' API_PASS='Harbor12345' USER='replication' ./scripts/ensureRobot.sh \
+		> "tmp/$(NS)-robo-creds"
+
 harbor.h1: NS=h1
+harbor.h1: CORE=core.$(NS).harbor.domain
+harbor.h1: NOTARY=notary.$(NS).harbor.domain
 harbor.h1: harbor.deploy
 
 harbor.h2: NS=h2
+harbor.h2: CORE=core.$(NS).harbor.domain
+harbor.h2: NOTARY=notary.$(NS).harbor.domain
 harbor.h2: harbor.deploy
+
+harbor.replication.deploy:
+	API_CA_FILE=cert/harbor.pem API_BASE='https://$(CORE)' API_USER='admin' API_PASS='Harbor12345' \
+	REG_NAME='$(REG_NAME)' REP_NAME='$(REP_NAME)' REMOTE_INFO='$(REMOTE_INFO)' \
+		./scripts/ensureReplication.sh
+
+harbor.h1.replication: CORE=core.h1.harbor.domain
+harbor.h1.replication: REMOTE_INFO=tmp/h2-robo-creds
+harbor.h1.replication: REG_NAME=h2
+harbor.h1.replication: REP_NAME=h1-to-h2
+harbor.h1.replication: harbor.replication.deploy
+
+harbor.h2.replication: CORE=core.h2.harbor.domain
+harbor.h2.replication: REMOTE_INFO=tmp/h1-robo-creds
+harbor.h2.replication: REG_NAME=h1
+harbor.h2.replication: REP_NAME=h2-to-h1
+harbor.h2.replication: harbor.replication.deploy

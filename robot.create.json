@@ -1,0 +1,79 @@
+{
+  "name": $user,
+  "duration": -1,
+  "description": null,
+  "disable": false,
+  "level": "system",
+  "permissions": [
+    {
+      "kind": "project",
+      "namespace": "*",
+      "access": [
+        {
+          "resource": "repository",
+          "action": "push"
+        },
+        {
+          "resource": "repository",
+          "action": "pull"
+        },
+        {
+          "resource": "artifact",
+          "action": "delete"
+        },
+        {
+          "resource": "helm-chart",
+          "action": "read"
+        },
+        {
+          "resource": "helm-chart-version",
+          "action": "create"
+        },
+        {
+          "resource": "helm-chart-version",
+          "action": "delete"
+        },
+        {
+          "resource": "tag",
+          "action": "create"
+        },
+        {
+          "resource": "tag",
+          "action": "delete"
+        },
+        {
+          "resource": "artifact-label",
+          "action": "create"
+        },
+        {
+          "resource": "artifact-label",
+          "action": "delete"
+        },
+        {
+          "resource": "scan",
+          "action": "create"
+        },
+        {
+          "resource": "scan",
+          "action": "stop"
+        },
+        {
+          "resource": "artifact",
+          "action": "list"
+        },
+        {
+          "resource": "repository",
+          "action": "list"
+        },
+        {
+          "resource": "helm-chart-version-label",
+          "action": "create"
+        },
+        {
+          "resource": "helm-chart-version-label",
+          "action": "delete"
+        }
+      ]
+    }
+  ]
+}

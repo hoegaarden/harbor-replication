@@ -1,0 +1,19 @@
+{
+  "name": $name,
+  "description": "",
+  "src_registry": null,
+  "dest_registry": $destReg,
+  "dest_namespace": null,
+  "dest_namespace_replace_count": 1,
+  "trigger": {
+    "type": "event_based",
+    "trigger_settings": {
+      "cron": ""
+    }
+  },
+  "filters": [],
+  "enabled": true,
+  "deletion": true,
+  "override": true,
+  "speed": -1
+}

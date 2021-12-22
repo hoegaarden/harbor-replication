@@ -1,0 +1,12 @@
+{
+  "credential": {
+    "access_key": $user,
+    "access_secret": $pass,
+    "type": "basic"
+  },
+  "description": "",
+  "insecure": true,
+  "name": $name,
+  "type": "harbor",
+  "url": $url
+}
