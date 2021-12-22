@@ -1,0 +1,17 @@
+#@ load("@ytt:data", "data")
+#@ load("@ytt:overlay", "overlay")
+
+#@overlay/match by=overlay.subset({"kind":"Service","metadata":{"name":"envoy"}})
+---
+spec:
+  #@overlay/match
+  type: "NodePort"
+  ports:
+  #@overlay/match by="name"
+  - name: http
+    #@overlay/match missing_ok=True
+    nodePort: 30950 #! needs to match the portforwarding in kind.yaml
+  #@overlay/match by="name"
+  - name: https
+    #@overlay/match missing_ok=True
+    nodePort: 30951 #! needs to match the portforwarding in kind.yaml
