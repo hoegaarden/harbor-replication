@@ -1,3 +1,5 @@
+SHELL := /usr/bin/env bash -eu -o pipefail
+
 CONTOUR_MANIFEST ?= https://projectcontour.io/quickstart/contour.yaml
 CONTOUR_NODE_PORT_HTTP ?= 30950  # needs to match port forwarding in kind.yaml
 CONTOUR_NODE_PORT_HTTPS ?= 30951 # needs to match port forwarding in kind.yaml
@@ -47,3 +49,21 @@ cert/harbor.pem: cert/harbor.key $(CERT_CONFIG)
 ssl: cert/harbor.pem
 ssl.delete:
 	rm -rf cert/
+
+harbor.deploy: CORE=core.$(NS).harbor.domain
+harbor.deploy: NOTARY=notary.$(NS).harbor.domain
+harbor.deploy: ssl
+	ytt -f ns.yml -v ns=$(NS) \
+		| kubectl apply -f -
+	kubectl --namespace $(NS) create secret tls harbor-tls --cert cert/harbor.pem --key cert/harbor.key --dry-run=client -o yaml \
+		| kubectl apply -f -
+	helm template ___remove___ ./harbor \
+		-f <( ytt -f harbor.values.yml -v hostname.core=$(CORE) -v hostname.notary=$(NOTARY) ) \
+			| sed -e 's/___remove___-//g' -e 's/___remove___/harbor-$(NS)/g' \
+			| kubectl --namespace $(NS) apply -f -
+
+harbor.h1: NS=h1
+harbor.h1: harbor.deploy
+
+harbor.h2: NS=h2
+harbor.h2: harbor.deploy
