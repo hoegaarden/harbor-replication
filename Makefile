@@ -84,11 +84,11 @@ harbor.replication.deploy:
 harbor.h1.replication: CORE=core.h1.harbor.domain
 harbor.h1.replication: REMOTE_INFO=tmp/h2-robo-creds
 harbor.h1.replication: REG_NAME=h2
-harbor.h1.replication: REP_NAME=h1-to-h2
+harbor.h1.replication: REP_NAME=push-h1-to-h2
 harbor.h1.replication: harbor.replication.deploy
 
 harbor.h2.replication: CORE=core.h2.harbor.domain
 harbor.h2.replication: REMOTE_INFO=tmp/h1-robo-creds
 harbor.h2.replication: REG_NAME=h1
-harbor.h2.replication: REP_NAME=h2-to-h1
+harbor.h2.replication: REP_NAME=push-h2-to-h1
 harbor.h2.replication: harbor.replication.deploy
