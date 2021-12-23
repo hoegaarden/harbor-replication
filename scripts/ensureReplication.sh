@@ -56,8 +56,26 @@ ensureReg() {
 		api "api/v2.0/registries/${id}" -X PUT --data "$payload"
 	fi
 
-    api api/v2.0/registries \
-        | jq --arg pass "$pass" --arg regName "$REG_NAME" '.[] | select(.name == $regName) | .credential.access_secret = $pass'
+	untilNot '[]' 30 1 api "api/v2.0/registries" \
+		| jq --arg pass "$pass" --arg regName "$REG_NAME" '.[] | select(.name == $regName) | .credential.access_secret = $pass'
+}
+
+untilNot() {
+	local not="$1"
+	local attempts="$2"
+	local wait="$3"
+	shift 3
+
+	local res
+	while (( attempts-- )) ; do
+		sleep "$wait"
+		res="$( "${@}" )" || continue
+		if [[ "$res" != '[]' ]] ; then
+			echo "$res"
+			return
+		fi
+	done
+	return 1
 }
 
 ensureReplication() {
