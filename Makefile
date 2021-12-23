@@ -58,6 +58,9 @@ harbor.deploy: ssl
 	helm template reg ./harbor \
 		-f <( ytt -f harbor.values.yml -v hostname.core=$(CORE) -v hostname.notary=$(NOTARY) ) \
 			| kubectl --namespace $(NS) apply -f -
+	for s in app=harbor,component=core app=harbor,component=portal ; do \
+		kubectl --namespace $(NS) wait --timeout=2m --for condition=Ready=true pod --selector "$$s" ; \
+	done
 
 	mkdir -p tmp
 	API_CA_FILE=cert/harbor.pem API_BASE='https://$(CORE)' API_USER='admin' API_PASS='Harbor12345' USER='replication' ./scripts/ensureRobot.sh \
