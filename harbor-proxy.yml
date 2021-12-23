@@ -1,0 +1,96 @@
+#@ load("@ytt:data", "data")
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: harbor-proxy
+  labels:
+    app: harbor-proxy
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: harbor-proxy
+  template:
+    metadata:
+      labels:
+        app: harbor-proxy
+    spec:
+      containers:
+      - image: nginxinc/nginx-unprivileged
+        name: harbor-proxy
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - name: templates
+          mountPath: /etc/nginx/templates/
+        env:
+        - name: HARBOR_DOMAIN
+          value: #@ data.values.front
+        - name: HARBOR_ACTIVE_SITE
+          value: #@ data.values.active
+      volumes:
+      - name: templates
+        configMap:
+          name: harbor-proxy-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: harbor-proxy-config
+  labels:
+    app: harbor-proxy
+data:
+  default.conf.template: |
+    server {
+      listen       8080;
+      server_name  _;
+
+      client_max_body_size 0;
+
+      location / {
+        proxy_pass https://${HARBOR_ACTIVE_SITE}:443/;
+        proxy_ssl_verify off;
+        proxy_ssl_session_reuse off;
+        proxy_request_buffering off;
+        proxy_set_header Host ${HARBOR_ACTIVE_SITE};
+        proxy_ssl_name ${HARBOR_ACTIVE_SITE};
+        proxy_ssl_server_name on;
+
+        # sub_filter_once off;
+        # sub_filter ${HARBOR_ACTIVE_SITE} ${HARBOR_DOMAIN};
+        # sub_filter_types text/html application/json;
+      }
+    }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: harbor-proxy
+  labels:
+    app: harbor-proxy
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: harbor-proxy
+  type: ClusterIP
+---
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: harbor-proxy
+  labels:
+    app: harbor-proxy
+spec:
+  virtualhost:
+    fqdn: #@ data.values.front
+    tls:
+      secretName: harbor-tls
+  routes:
+    - conditions:
+      - prefix: /
+      services:
+      - name: harbor-proxy
+        port: 8080

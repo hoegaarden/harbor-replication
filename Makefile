@@ -50,11 +50,13 @@ ssl: cert/harbor.pem
 ssl.delete:
 	rm -rf cert/
 
-harbor.deploy: ssl
+prep-namespace: ssl
 	ytt -f ns.yml -v ns=$(NS) \
 		| kubectl apply -f -
 	kubectl --namespace $(NS) create secret tls harbor-tls --cert cert/harbor.pem --key cert/harbor.key --dry-run=client -o yaml \
 		| kubectl apply -f -
+
+harbor.deploy: prep-namespace
 	helm template reg ./harbor \
 		-f <( ytt -f harbor.values.yml -v hostname.core=$(CORE) -v hostname.notary=$(NOTARY) ) \
 			| kubectl --namespace $(NS) apply -f -
@@ -92,3 +94,16 @@ harbor.h2.replication: REMOTE_INFO=tmp/h1-robo-creds
 harbor.h2.replication: REG_NAME=h1
 harbor.h2.replication: REP_NAME=push-h2-to-h1
 harbor.h2.replication: harbor.replication.deploy
+
+harbor.proxy: NS=harbor-proxy
+harbor.proxy: ACTIVE?=core.h1.harbor.domain
+harbor.proxy: FRONT=core.harbor.domain
+harbor.proxy: prep-namespace
+	# workaround the docker pull limit, presuming the local docker engine is
+	# logged in to dockerhub
+	docker pull nginxinc/nginx-unprivileged
+	kind --name harbor load docker-image nginxinc/nginx-unprivileged
+
+	ytt -f harbor-proxy.yml -v front=$(FRONT) -v active=$(ACTIVE) \
+		| kubectl --namespace $(NS) apply -f -
+	kubectl --namespace $(NS) rollout restart deployment harbor-proxy
