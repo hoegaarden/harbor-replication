@@ -14,6 +14,9 @@ make kind
 make patch-coredns
 make kapp-controller contour
 
+# optionally, preload images
+make preload-images
+
 make ssl
 
 make harbor.h1 harbor.h2

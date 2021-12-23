@@ -37,6 +37,19 @@ contour:
 contour.delete:
 	kubectl delete --timeout 3m namespace projectcontour
 
+# workaround the docker pull limit, presuming the local docker engine is
+# logged in to dockerhub
+preload-imgaes:
+	{ \
+		helm template reg ./harbor -f harbor.values.yml \
+			| awk '/image:/{ print $$2 }' ; \
+		echo 'nginxinc/nginx-unprivileged' ; \
+	} | \
+		while read img ; do \
+			docker pull "$$img" ; \
+			kind --name harbor load docker-image "$$img" ; \
+		done
+
 cert/harbor.key:
 	mkdir -p cert
 	certtool --generate-privkey \
@@ -99,11 +112,6 @@ harbor.proxy: NS=harbor-proxy
 harbor.proxy: ACTIVE?=core.h1.harbor.domain
 harbor.proxy: FRONT=core.harbor.domain
 harbor.proxy: prep-namespace
-	# workaround the docker pull limit, presuming the local docker engine is
-	# logged in to dockerhub
-	docker pull nginxinc/nginx-unprivileged
-	kind --name harbor load docker-image nginxinc/nginx-unprivileged
-
 	ytt -f harbor-proxy.yml -v front=$(FRONT) -v active=$(ACTIVE) \
 		| kubectl --namespace $(NS) apply -f -
 	kubectl --namespace $(NS) rollout restart deployment harbor-proxy
