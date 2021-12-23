@@ -55,9 +55,8 @@ harbor.deploy: ssl
 		| kubectl apply -f -
 	kubectl --namespace $(NS) create secret tls harbor-tls --cert cert/harbor.pem --key cert/harbor.key --dry-run=client -o yaml \
 		| kubectl apply -f -
-	helm template ___remove___ ./harbor \
+	helm template reg ./harbor \
 		-f <( ytt -f harbor.values.yml -v hostname.core=$(CORE) -v hostname.notary=$(NOTARY) ) \
-			| sed -e 's/___remove___-//g' -e 's/___remove___/harbor-$(NS)/g' \
 			| kubectl --namespace $(NS) apply -f -
 
 	mkdir -p tmp
