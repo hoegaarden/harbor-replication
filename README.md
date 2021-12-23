@@ -1,4 +1,4 @@
-# Bidirectional Replication between 2 Harbor instances
+# Experiment: Bidirectional Replication between 2 Harbor instances
 
 ## Quick start
 
