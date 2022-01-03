@@ -10,16 +10,19 @@ cat <<EOF | sudo tee /etc/hosts
 "$(cat /etc/hosts)"
 EOF
 
+git submodule update --init --recursive
+
 make kind
 make patch-coredns
-make kapp-controller contour
+make contour
 
 # optionally, preload images
 make preload-images
 
 make ssl
 
-make harbor.h1 harbor.h2
+make harbor.h1
+make harbor.h2
 
 # set up event based replication between the two registries
 make harbor.h1.replication
