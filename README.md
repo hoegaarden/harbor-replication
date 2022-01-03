@@ -85,3 +85,9 @@ When an artifact is deleted, replication pick the deletion up but eventually fai
 ```
 
 Any other replication (e.g. for new artifacts) seems to still work. There is only one remote registry and one replication policy set up, which all use the same credentials (the global robot user). So it's not celar why deletion fails.
+
+#### Not everything has been tested
+
+Pushing and pulling images through the proxy has been tested as well as using the WebUI.
+
+Other things, like using harbor to host helm charts or Notary has not been tested yet; those might need special attention when it comes to the configuration of the proxy.
