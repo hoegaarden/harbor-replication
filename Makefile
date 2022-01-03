@@ -39,7 +39,7 @@ contour.delete:
 
 # workaround the docker pull limit, presuming the local docker engine is
 # logged in to dockerhub
-preload-imgaes:
+preload-images:
 	{ \
 		helm template reg ./harbor -f harbor.values.yml \
 			| awk '/image:/{ print $$2 }' ; \
