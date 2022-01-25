@@ -28,3 +28,20 @@ registry:
 
 chartmuseum:
   absoluteUrl: false
+
+metrics:
+  enabled: true
+  core:
+    path: /metrics
+    port: 9090
+  registry:
+    path: /metrics
+    port: 9090
+  jobservice:
+    path: /metrics
+    port: 9090
+  exporter:
+    path: /metrics
+    port: 9090
+  serviceMonitor:
+    enabled: false
